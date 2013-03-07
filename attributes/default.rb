@@ -8,7 +8,7 @@
 #
 
 # Chef repo
-default['ow_python']['secret_databag_name'] 		= "secrets"
+default['ow_python']['secret_databag_name'] 	= "secrets"
 default['ow_python']['secret_item_name'] 		= "ow_python"
 
 # SSL
@@ -17,7 +17,6 @@ default['ow_python']['ssl_databag_item_name'] 	= "ssl"
 
 # System
 default['ow_python']['app_root']      		= "/var/www/ReopenWatch"
-default['ow_python']['config_path']       	= "/reopenwatch/reopenwatch/local_settings.py"
 default['ow_python']['git_user']      		= "git"
 default['ow_python']['service_user']      	= "python"
 default['ow_python']['service_user_gid']    = 500
@@ -27,7 +26,16 @@ default['ow_python']['git_rev']      		= "HEAD"
 default['ow_python']['git_branch']      	= "v2" # Can't get this working yet
 default['ow_python']['git_ssh_wrapper']   	= "/home/git/.ssh/wrappers/ow-github_deploy_wrapper.sh"
 default['ow_python']['log_path']		    = "/var/log/ow_python.log"
+
+#Django
+default['ow_python']['local_settings_file'] = "local_settings.py"
 default['ow_python']['run_script']	    	= "run.sh"
+
+#Postgres
+default['ow_python']['db_host']	    		= "localhost"
+default['ow_python']['db_port']	    		= 5432
+default['ow_python']['db_name']	    		= "openwatch"
+default['ow_python']['db_user']	    		= "postgres"
 
 # Nginx
 default['ow_python']['http_listen_port']    = 80
