@@ -1,0 +1,42 @@
+# Django
+
+server {
+    listen      <%= @http_listen_port %>;
+    server_name <%= @domain %> www.<%= @domain %>;
+    location /uploadnocaptcha {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Scheme $scheme;
+        proxy_connect_timeout 10;
+        proxy_read_timeout 10;
+        proxy_pass http://localhost:<%= @internal_port %>;
+    }
+    location / {
+        rewrite     ^   https://$server_name$request_uri? permanent;
+    }
+}
+
+
+server {
+    listen <%= @https_listen_port %>;
+    server_name <%= @domain %>;
+    ssl on;
+    ssl_certificate <%= @ssl_dir %> <%= @ssl_cert %>;
+    ssl_certificate_key <%= @ssl_dir %><%= @ssl_key %>;
+    keepalive_timeout 70;
+    access_log <%= @access_log %>;
+    error_log <%= @error_log %>;
+
+    location / {
+        proxy_pass_header Server;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Scheme $scheme;
+        proxy_connect_timeout 10;
+        proxy_read_timeout 10;
+        proxy_pass http://localhost:<%= @internal_port %>/;
+    }
+}
