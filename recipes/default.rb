@@ -28,7 +28,8 @@ application node['ow_python']['service_name'] do
   repository node['ow_python']['git_url']
   revision node['ow_python']['git_rev']
   deploy_key ssh_key['id_rsa']
-  migrate false
+  #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
+  migrate true
   # packages should be handled separately?
   # packages ["git", "git-core", "mercurial"]
 
@@ -54,7 +55,7 @@ application node['ow_python']['service_name'] do
     	:aws_bucket_name => node['ow_python']['aws_bucket_name'],
     })
     debug true
-    collectstatic false
+    collectstatic true
   end
 end
 
@@ -66,16 +67,6 @@ link node['ow_python']['app_root'] + "/current/reopenwatch/reopenwatch/local_set
   to node['ow_python']['app_root'] + "/current/local_settings.py"
 end
 
-# collectstatic + syncdb
-# TODO: get django resource to do this
-bash "collectstatic and syncdb" do
-  user node['ow_python']['git_user']
-  cwd node['ow_python']['app_root'] + '/current/reopenwatch'
-  code <<-EOH
-  /var/www/ReopenWatch/shared/env/bin/python manage.py collectstatic --noinput
-  /var/www/ReopenWatch/shared/env/bin/python manage.py syncdb --noinput
-  EOH
-end
 
 # Make Nginx log dirs
 directory node['ow_python']['log_dir'] do
@@ -84,8 +75,6 @@ directory node['ow_python']['log_dir'] do
   recursive true
   action :create
 end
-
-## END TODO: separate cookbook
 
 # Nginx config file
 template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
