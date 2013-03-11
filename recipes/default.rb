@@ -28,8 +28,6 @@ application node['ow_python']['service_name'] do
   repository node['ow_python']['git_url']
   revision node['ow_python']['git_rev']
   deploy_key ssh_key['id_rsa']
-  # THIS SYMLINKS INTO THE APP ROOT. WHYYYYYYY!
-  symlink_before_migrate ({"local_settings.py" => "reopenwatch/reopenwatch/local_settings.py"})
   migrate false
   # packages should be handled separately?
   # packages ["git", "git-core", "mercurial"]
@@ -37,6 +35,7 @@ application node['ow_python']['service_name'] do
   django do
     requirements "requirements.txt"
     settings_template node['ow_python']['local_settings_file']
+    local_settings_file 'local_settings.py'
     settings({
     	:db_name => node['ow_python']['db_name'],
     	:db_user => node['ow_python']['db_user'],
@@ -59,6 +58,14 @@ application node['ow_python']['service_name'] do
   end
 end
 
+#  Symlink local_settings.py to reopenwatch/reopenwatch/local_settings.py
+#  TODO: Get Django resource to do this properly
+link node['ow_python']['app_root'] + "/current/reopenwatch/reopenwatch/local_settings.py" do
+  owner node['ow_python']['git_user']
+  group node['ow_python']['service_user_group']
+  to node['ow_python']['app_root'] + "/current/local_settings.py"
+end
+
 # collectstatic + syncdb
 # TODO: get django resource to do this
 bash "collectstatic and syncdb" do
@@ -68,34 +75,6 @@ bash "collectstatic and syncdb" do
   /var/www/ReopenWatch/shared/env/bin/python manage.py collectstatic --noinput
   /var/www/ReopenWatch/shared/env/bin/python manage.py syncdb --noinput
   EOH
-end
-
-## TODO: Put in separate ow_server cookbook
-# Make directory for ssl credentials
-directory node['ow_python']['ssl_dir'] do
-  owner node['nginx']['user']
-  group node['nginx']['group']
-  recursive true
-  action :create
-end
-
-# SSL certificate and key
-cookbook_file node['ow_python']['ssl_dir'] + node['ow_python']['ssl_cert']  do
-  source "star_openwatch_net.crt"
-  owner node['nginx']['user']
-  group node['nginx']['group']
-  mode 0600
-  action :create
-end
-
-ssl_key = Chef::EncryptedDataBagItem.load(node['ow_python']['ssl_databag_name'] , node['ow_python']['ssl_databag_item_name'] )
-
-file node['ow_python']['ssl_dir'] + node['ow_python']['ssl_key'] do
-  owner node['nginx']['user']
-  group node['nginx']['group']
-  content ssl_key['*.openwatch.net']
-  mode 0600
-  action :create
 end
 
 # Make Nginx log dirs
