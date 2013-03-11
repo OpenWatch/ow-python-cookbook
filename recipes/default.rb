@@ -37,6 +37,7 @@ application node['ow_python']['service_name'] do
     requirements "requirements.txt"
     settings_template node['ow_python']['local_settings_file']
     local_settings_file 'local_settings.py'
+    project_name 'reopenwatch'
     settings({
     	:db_name => node['ow_python']['db_name'],
     	:db_user => node['ow_python']['db_user'],
