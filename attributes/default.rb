@@ -19,7 +19,7 @@ default['ow_python']['ssl_databag_item_name'] 	= "ssl"
 default['ow_python']['app_root']      		= "/var/www/ReopenWatch"
 default['ow_python']['domain']      		= "chef.openwatch.net"
 default['ow_python']['git_user']      		= "git"
-default['ow_python']['service_user']      	= "python"
+default['ow_python']['service_user']      	= "django"
 default['ow_python']['service_user_gid']    = 500
 default['ow_python']['service_user_group']  = "service_users"
 default['ow_python']['service_name']      	= "ow_python"
@@ -29,8 +29,10 @@ default['ow_python']['git_branch']      	= "v2" # Can't get this working yet
 default['ow_python']['git_ssh_wrapper']   	= "/home/git/.ssh/wrappers/ow-github_deploy_wrapper.sh"
 default['ow_python']['log_dir']     		= "/var/log/ow/"
 default['ow_python']['service_log']			= "ow_python.log"
+default['ow_python']['service_error_log']	= "ow_python_error.log"
 
 #Django
+default['ow_python']['app_name']      		= "reopenwatch"
 default['ow_python']['local_settings_file'] = "local_settings.py.erb"
 default['ow_python']['run_script']	    	= "run.sh"
 default['ow_python']['node_api_user']	    = "test"

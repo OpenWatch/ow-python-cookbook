@@ -29,7 +29,7 @@ application node['ow_python']['service_name'] do
   revision node['ow_python']['git_rev']
   deploy_key ssh_key['id_rsa']
   #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
-  migrate true
+  migrate false
   # packages should be handled separately?
   # packages ["git", "git-core", "mercurial"]
 
@@ -56,7 +56,7 @@ application node['ow_python']['service_name'] do
     	:aws_bucket_name => node['ow_python']['aws_bucket_name'],
     })
     debug true
-    collectstatic true
+    collectstatic false
   end
 end
 
@@ -100,11 +100,47 @@ template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
 end
 
 
-## XXX: Temp server run
-bash "collectstatic and syncdb" do
+## Syncdb
+bash "syncdb" do
   user node['ow_python']['git_user']
   cwd node['ow_python']['app_root'] + '/current/reopenwatch'
   code <<-EOH
-  /var/www/ReopenWatch/shared/env/bin/python manage.py runserver 0.0.0.0:8000
+  /var/www/ReopenWatch/shared/env/bin/python manage.py syncdb --noinput
+  /var/www/ReopenWatch/shared/env/bin/python manage.py check_permissions
   EOH
+end
+
+# Upstart service config file
+template "/etc/init/" + node['ow_python']['service_name'] + ".conf" do
+    source "upstart.conf.erb"
+    owner node['ow_python']['service_user'] 
+    group node['ow_python']['service_user_gid'] 
+    variables({
+    :service_user => node['ow_python']['service_user'],
+    :virtualenv_path => node['ow_python']['app_root'] + '/shared/env',
+    :app_root => node['ow_python']['app_root'] + '/current',
+    :app_name => node['ow_python']['app_name'],
+    :access_log_path => node['ow_python']['log_dir'] + node['ow_python']['service_log'],
+    :error_log_path => node['ow_python']['log_dir'] + node['ow_python']['service_error_log']
+    })
+end
+
+# Make service log file
+file node['ow_python']['log_dir'] + node['ow_python']['service_log']  do
+  owner node['ow_python']['service_user']
+  group node['ow_python']['service_group'] 
+  action :create_if_missing # see actions section below
+end
+
+# Make service error log file
+file node['ow_python']['log_dir'] + node['ow_python']['service_error_log']  do
+  owner node['ow_python']['service_user']
+  group node['ow_python']['service_group'] 
+  action :create_if_missing # see actions section below
+end
+
+# Register capture app as a service
+service node['ow_python']['service_name'] do
+  provider Chef::Provider::Service::Upstart
+  action :start
 end
