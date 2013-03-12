@@ -7,7 +7,8 @@
 # All rights reserved - Do Not Redistribute
 #
 
-secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['secret_databag_item_name'] )
+secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['python_databag_item_name'] )
+psql_secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['postgres_databag_item_name'] )
 ssh_key = Chef::EncryptedDataBagItem.load("ssh", "git")
 
 # Setup postgresql database
@@ -16,7 +17,8 @@ postgresql_database node['ow_python']['db_name'] do
   		:host => "127.0.0.1", 
   		:port => node['ow_python']['db_port'], 
   		:username => node['ow_python']['db_user'], 
-  		:password => secrets['db_user_password']})
+  		:password => psql_secrets['user_password']
+  })
   action :create
 end
 
@@ -28,6 +30,9 @@ application node['ow_python']['service_name'] do
   repository node['ow_python']['git_url']
   revision node['ow_python']['git_rev']
   deploy_key ssh_key['id_rsa']
+  before_deploy do
+
+  end
   #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
   migrate false
   # packages should be handled separately?
@@ -41,7 +46,7 @@ application node['ow_python']['service_name'] do
     settings({
     	:db_name => node['ow_python']['db_name'],
     	:db_user => node['ow_python']['db_user'],
-    	:db_password => secrets['db_user_password'],
+    	:db_password => psql_secrets['user_password'],
     	:db_host => node['ow_python']['db_host'],
     	:db_port => node['ow_python']['db_port'],
     	:node_api_user => node['ow_python']['node_api_user'],
