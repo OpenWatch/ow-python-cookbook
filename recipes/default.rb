@@ -8,7 +8,6 @@
 #
 
 secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['python_databag_item_name'] )
-psql_secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['postgres_databag_item_name'] )
 ssh_key = Chef::EncryptedDataBagItem.load("ssh", "git")
 
 # Setup postgresql database
@@ -17,7 +16,7 @@ postgresql_database node['ow_python']['db_name'] do
   		:host => "127.0.0.1", 
   		:port => node['ow_python']['db_port'], 
   		:username => node['ow_python']['db_user'], 
-  		:password => psql_secrets['user_password']
+  		:password => node['postgresql']['password']['postgres']
   })
   action :create
 end
@@ -35,18 +34,16 @@ application node['ow_python']['service_name'] do
   end
   #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
   migrate false
-  # packages should be handled separately?
-  # packages ["git", "git-core", "mercurial"]
+  packages ["libjpeg-dev"]
 
   django do
     requirements "requirements.txt"
     settings_template node['ow_python']['local_settings_file']
     local_settings_file 'local_settings.py'
-    project_name 'reopenwatch'
     settings({
     	:db_name => node['ow_python']['db_name'],
     	:db_user => node['ow_python']['db_user'],
-    	:db_password => psql_secrets['user_password'],
+    	:db_password => node['postgresql']['password']['postgres'],
     	:db_host => node['ow_python']['db_host'],
     	:db_port => node['ow_python']['db_port'],
     	:node_api_user => node['ow_python']['node_api_user'],
@@ -71,6 +68,21 @@ link node['ow_python']['app_root'] + "/current/reopenwatch/reopenwatch/local_set
   owner node['ow_python']['git_user']
   group node['ow_python']['service_user_group']
   to node['ow_python']['app_root'] + "/current/local_settings.py"
+end
+
+# Create and set permissions on upload directories
+directory node['ow_python']['app_root'] + "/current/media/recordings" do
+  owner node['ow_python']['git_user'] 
+  group node['ow_python']['service_user_group']
+  mode "770"
+  action :create
+end
+
+directory node['ow_python']['app_root'] + "/current/media/uploads" do
+  owner node['ow_python']['git_user'] 
+  group node['ow_python']['service_user_group']
+  mode "770"
+  action :create
 end
 
 
