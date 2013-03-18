@@ -22,6 +22,7 @@ server {
 server {
     listen <%= @https_listen_port %>;
     server_name <%= @domain %>;
+    add_header Strict-Transport-Security "max-age=315360000; includeSubdomains";
     ssl on;
     ssl_certificate <%= @ssl_dir %> <%= @ssl_cert %>;
     ssl_certificate_key <%= @ssl_dir %><%= @ssl_key %>;
