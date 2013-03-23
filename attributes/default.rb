@@ -38,6 +38,7 @@ default['ow_python']['local_settings_file'] = "local_settings.py.erb"
 default['ow_python']['run_script']	    	= "run.sh"
 default['ow_python']['node_api_user']	    = "test"
 default['ow_python']['etherpad_url']		= "http://pad.openwatch.net:9001/api"
+default['ow_python']['etherpad_pad_url']	= "https://pad.openwatch.net/p/"
 default['ow_python']['stripe_publishable']	= "pk_test_R5RY0ez5odUzDnzjCbno32jf"
 default['ow_python']['aws_bucket_name']		= "openwatch-static"
 default['ow_python']['internal_port']		= 8000
