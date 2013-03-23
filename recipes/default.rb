@@ -57,6 +57,7 @@ application node['ow_python']['service_name'] do
     	:aws_access_key_id => secrets['aws_access_key_id'],
     	:aws_secret_access_key => secrets['aws_secret_access_key'],
     	:aws_bucket_name => node['ow_python']['aws_bucket_name'],
+      :sentry_dsn => secrets['sentry_dsn']
     })
     debug true
     collectstatic false
