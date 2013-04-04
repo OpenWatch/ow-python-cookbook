@@ -104,7 +104,6 @@ template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
     variables({
     :http_listen_port => node['ow_python']['http_listen_port'],
     :https_listen_port => node['ow_python']['https_listen_port'],
-    :app_domain => node[:fqdn],
     :domain => node['ow_python']['domain'],
     :internal_port => node['ow_python']['internal_port'],
     :ssl_cert => node['ow_python']['ssl_dir'] + node['ow_python']['ssl_cert'],
