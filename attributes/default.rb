@@ -10,7 +10,6 @@
 # Chef repo
 default['ow_python']['secret_databag_name'] 			= "secrets"
 default['ow_python']['python_databag_item_name'] 		= "ow_python"
-default['ow_python']['postgres_databag_item_name'] 		= "postgres"
 
 # SSL
 default['ow_python']['ssl_databag_name'] 		= "ssl"
