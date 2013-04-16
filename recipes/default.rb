@@ -57,7 +57,8 @@ application node['ow_python']['service_name'] do
     	:aws_access_key_id => secrets['aws_access_key_id'],
     	:aws_secret_access_key => secrets['aws_secret_access_key'],
     	:aws_bucket_name => node['ow_python']['aws_bucket_name'],
-      :sentry_dsn => secrets['sentry_dsn']
+      :sentry_dsn => secrets['sentry_dsn'],
+      :embedly_api_key => secrets['embedly_api_key']
     })
     debug true
     collectstatic false
@@ -118,12 +119,11 @@ template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
 end
 
 
-## Syncdb
-bash "syncdb" do
+## Check permissions
+bash "check_permissions" do
   user node['ow_python']['git_user']
   cwd node['ow_python']['app_root'] + '/current/reopenwatch'
   code <<-EOH
-  /var/www/ReopenWatch/shared/env/bin/python manage.py syncdb --noinput
   /var/www/ReopenWatch/shared/env/bin/python manage.py check_permissions
   EOH
 end
