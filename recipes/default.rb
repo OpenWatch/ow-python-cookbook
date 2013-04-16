@@ -34,7 +34,7 @@ application node['ow_python']['service_name'] do
   end
   #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
   migrate false
-  packages ["libjpeg-dev"]
+  packages ["libjpeg-dev", "libxml2-dev", "libxslt-dev"]
 
   django do
     requirements "requirements.txt"
