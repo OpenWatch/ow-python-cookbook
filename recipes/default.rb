@@ -7,6 +7,7 @@
 # All rights reserved - Do Not Redistribute
 #
 
+ssh_secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['ssh_databag_name'] , node['ow_python']['ssh_databag_item_name'] )
 secrets = Chef::EncryptedDataBagItem.load(node['ow_python']['secret_databag_name'] , node['ow_python']['python_databag_item_name'] )
 ssh_key = Chef::EncryptedDataBagItem.load("ssh", "git")
 
@@ -21,73 +22,94 @@ postgresql_database node['ow_python']['db_name'] do
   action :create
 end
 
-#  Deploy Django app
-application node['ow_python']['service_name'] do
-  path node['ow_python']['app_root']
-  owner node['ow_python']['git_user']
+# Deploy Django app with git and virtualenv
+# Install pre-req packages
+packages = ["libjpeg-dev", "libxml2-dev", "libxslt-dev"]
+packages.each do |app|
+  package app
+end
+# Create a virtualenv
+virtualenv_path = "/home/" + node['ow_python']['service_user'] + "/.virtualenvs/" + node['ow_python']['virtualenv_name']
+python_virtualenv virtualenv_path  do
+  owner node['ow_python']['service_user']   
   group node['ow_python']['service_user_group']
-  repository node['ow_python']['git_url']
-  revision node['ow_python']['git_rev']
-  deploy_key ssh_key['id_rsa']
-  before_deploy do
-
-  end
-  #symlinks ( 'local_settings.py' => 'reopenwatch/reopenwatch/local_settings.py')
-  migrate false
-  packages ["libjpeg-dev", "libxml2-dev", "libxslt-dev"]
-
-  django do
-    requirements "requirements.txt"
-    settings_template node['ow_python']['local_settings_file']
-    local_settings_file 'local_settings.py'
-    settings({
-    	:db_name => node['ow_python']['db_name'],
-    	:db_user => node['ow_python']['db_user'],
-    	:db_password => node['postgresql']['password']['postgres'],
-    	:db_host => node['ow_python']['db_host'],
-    	:db_port => node['ow_python']['db_port'],
-    	:node_api_user => secrets['django_api_user'],
-    	:node_api_secret => secrets['django_api_password'],
-    	:etherpad_url => node['ow_python']['etherpad_url'],
-    	:etherpad_pad_url => node['ow_python']['etherpad_pad_url'],
-      :etherpad_api_key => secrets['etherpad_api_key'],
-    	:mailgun_api_key => secrets['mailgun_api_key'],
-    	:stripe_secret => secrets['stripe_secret'],
-    	:stripe_publishable => node['ow_python']['stripe_publishable'],
-    	:aws_access_key_id => secrets['aws_access_key_id'],
-    	:aws_secret_access_key => secrets['aws_secret_access_key'],
-    	:aws_bucket_name => node['ow_python']['aws_bucket_name'],
-      :sentry_dsn => secrets['sentry_dsn'],
-      :embedly_api_key => secrets['embedly_api_key']
-    })
-    debug true
-    collectstatic false
-  end
+  action :create
 end
 
-#  Symlink local_settings.py to reopenwatch/reopenwatch/local_settings.py
-#  TODO: Get Django resource to do this properly
-link node['ow_python']['app_root'] + "/current/reopenwatch/reopenwatch/local_settings.py" do
+# Establish ssh wrapper for the git user
+git_ssh_wrapper "ow-github" do
   owner node['ow_python']['git_user']
   group node['ow_python']['service_user_group']
-  to node['ow_python']['app_root'] + "/current/local_settings.py"
+  ssh_key_data ssh_secrets['id_rsa']
+end
+
+# Make git checkout dir
+directory node['ow_python']['app_root'] do
+  owner node['ow_python']['git_user']
+  group node['ow_python']['service_user_group']
+  recursive true
+  action :create
+end
+
+# Git checkout
+git node['ow_python']['app_root'] do
+   repository node['ow_python']['git_url'] 
+   revision node['ow_python']['git_rev']  
+   ssh_wrapper "/home/" + node['ow_python']['git_user'] + "/.ssh/wrappers/ow-github_deploy_wrapper.sh"
+   action :sync
+   user node['ow_python']['git_user']
+   group node['ow_python']['service_user_group']
+end
+
+# Pip install -r requirements.txt
+execute "pip install requirements.txt" do
+    user "root"
+    command virtualenv_path + "/bin/pip install -r " + node['ow_python']['app_root'] + "/requirements.txt"
+end
+
+# Make local_settings.py 
+template node['ow_python']['app_root'] + "/reopenwatch/reopenwatch/local_settings.py" do
+    source "local_settings.py.erb"
+    owner node['ow_python']['service_user']   
+    group node['ow_python']['service_user_group']   
+    variables({
+      :db_name => node['ow_python']['db_name'],
+      :db_user => node['ow_python']['db_user'],
+      :db_password => node['postgresql']['password']['postgres'],
+      :db_host => node['ow_python']['db_host'],
+      :db_port => node['ow_python']['db_port'],
+      :node_api_user => secrets['django_api_user'],
+      :node_api_secret => secrets['django_api_password'],
+      :etherpad_url => node['ow_python']['etherpad_url'],
+      :etherpad_pad_url => node['ow_python']['etherpad_pad_url'],
+      :etherpad_api_key => secrets['etherpad_api_key'],
+      :mailgun_api_key => secrets['mailgun_api_key'],
+      :stripe_secret => secrets['stripe_secret'],
+      :stripe_publishable => node['ow_python']['stripe_publishable'],
+      :aws_access_key_id => secrets['aws_access_key_id'],
+      :aws_secret_access_key => secrets['aws_secret_access_key'],
+      :aws_bucket_name => node['ow_python']['aws_bucket_name'],
+      :sentry_dsn => secrets['sentry_dsn'],
+      :embedly_api_key => secrets['embedly_api_key'],
+      :chef_node_name => Chef::Config[:node_name]
+    })
+    action :create
 end
 
 # Create and set permissions on upload directories
-directory node['ow_python']['app_root'] + "/current/media/recordings" do
-  owner node['ow_python']['git_user'] 
+directory node['ow_python']['app_root'] + "/media/recordings" do
+  owner node['ow_python']['service_user'] 
   group node['ow_python']['service_user_group']
   mode "770"
   action :create
 end
 
-directory node['ow_python']['app_root'] + "/current/media/uploads" do
-  owner node['ow_python']['git_user'] 
+directory node['ow_python']['app_root'] + "/media/uploads" do
+  owner node['ow_python']['service_user'] 
   group node['ow_python']['service_user_group']
   mode "770"
   action :create
 end
-
 
 # Make Nginx log dirs
 directory node['ow_python']['log_dir'] do
@@ -118,16 +140,6 @@ template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
     action :create
 end
 
-
-## Check permissions
-bash "check_permissions" do
-  user node['ow_python']['git_user']
-  cwd node['ow_python']['app_root'] + '/current/reopenwatch'
-  code <<-EOH
-  /var/www/ReopenWatch/shared/env/bin/python manage.py check_permissions
-  EOH
-end
-
 # Upstart service config file
 template "/etc/init/" + node['ow_python']['service_name'] + ".conf" do
     source "upstart.conf.erb"
@@ -135,8 +147,8 @@ template "/etc/init/" + node['ow_python']['service_name'] + ".conf" do
     group node['ow_python']['service_user_gid'] 
     variables({
     :service_user => node['ow_python']['service_user'],
-    :virtualenv_path => node['ow_python']['app_root'] + '/shared/env',
-    :app_root => node['ow_python']['app_root'] + '/current',
+    :virtualenv_path => virtualenv_path,
+    :app_root => node['ow_python']['app_root'],
     :app_name => node['ow_python']['app_name'],
     :access_log_path => node['ow_python']['log_dir'] + node['ow_python']['service_log'],
     :error_log_path => node['ow_python']['log_dir'] + node['ow_python']['service_error_log']
@@ -160,5 +172,5 @@ end
 # Register capture app as a service
 service node['ow_python']['service_name'] do
   provider Chef::Provider::Service::Upstart
-  action :start
+  action :enable
 end

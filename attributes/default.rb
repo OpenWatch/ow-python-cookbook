@@ -15,6 +15,10 @@ default['ow_python']['python_databag_item_name'] 		= "ow_python"
 default['ow_python']['ssl_databag_name'] 		= "ssl"
 default['ow_python']['ssl_databag_item_name'] 	= "ssl"
 
+# Git SSH
+default['ow_python']['ssh_databag_name'] 		= "ssh"
+default['ow_python']['ssh_databag_item_name'] 	= "git"
+
 # System
 default['ow_python']['app_root']      		= "/var/www/ReopenWatch"
 default['ow_python']['domain']      		= "chef.openwatch.net"
@@ -31,9 +35,11 @@ default['ow_python']['log_dir']     		= "/var/log/ow/"
 default['ow_python']['service_log']			= "ow_python.log"
 default['ow_python']['service_error_log']	= "ow_python_error.log"
 
+#Python
+default['ow_python']['virtualenv_name']     = "reopenwatch"
+
 #Django
 default['ow_python']['app_name']      		= "reopenwatch"
-default['ow_python']['local_settings_file'] = "local_settings.py.erb"
 default['ow_python']['run_script']	    	= "run.sh"
 default['ow_python']['node_api_user']	    = "test"
 default['ow_python']['etherpad_url']		= "https://pad.openwatch.net/api"

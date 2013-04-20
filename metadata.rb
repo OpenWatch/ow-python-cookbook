@@ -9,4 +9,6 @@ version          '0.1.0'
 recipe "ow_python", "deploys a django application at the git repo address specified in attributes"
 
 depends "database"
+depends "git_ssh_wrapper"
+depends "python"
 depends "application_python"
