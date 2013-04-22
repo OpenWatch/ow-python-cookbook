@@ -28,7 +28,7 @@ default['ow_python']['service_user_gid']    = 500
 default['ow_python']['service_user_group']  = "service_users"
 default['ow_python']['service_name']      	= "ow_python"
 default['ow_python']['git_url']      		= "git@github.com:OpenWatch/ReopenWatch.git"
-default['ow_python']['git_rev']      		= "HEAD"
+default['ow_python']['git_rev']      		= "master"
 default['ow_python']['git_branch']      	= "v2" # Can't get this working yet
 default['ow_python']['git_ssh_wrapper']   	= "/home/git/.ssh/wrappers/ow-github_deploy_wrapper.sh"
 default['ow_python']['log_dir']     		= "/var/log/ow/"
@@ -53,6 +53,8 @@ default['ow_python']['db_host']	    		= "localhost"
 default['ow_python']['db_port']	    		= 5432
 default['ow_python']['db_name']	    		= "openwatch"
 default['ow_python']['db_user']	    		= "postgres"
+default['ow_python']['db_backup_hr']	   	= 4
+default['ow_python']['db_backup_min']	    = 19
 # Hardcoded in postgresql as 'postgres'
 
 # Nginx

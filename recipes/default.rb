@@ -61,6 +61,32 @@ git node['ow_python']['app_root'] do
    group node['ow_python']['service_user_group']
 end
 
+# Setup git repository for remote use
+
+=begin
+# Copy post-update hook file
+# To reset --hard on push
+cookbook_file node['ow_python']['app_root'] + '/.git/hooks/post-update'  do
+  source "post-update"
+  owner node['ow_python']['git_user']
+  group node['ow_python']['service_group'] 
+  action :create_if_missing # see actions section below
+end
+=end
+
+# Create /.git/config
+template node['ow_python']['app_root'] + "/.git/config" do
+    source "config.erb"
+    owner node['ow_python']['git_user']   
+    group node['ow_python']['service_user_group']   
+    variables({     
+      :git_url => node['ow_python']['git_url']  
+    })
+    action :create
+end
+
+
+
 # Pip install -r requirements.txt
 execute "pip install requirements.txt" do
     user "root"
@@ -174,3 +200,12 @@ service node['ow_python']['service_name'] do
   provider Chef::Provider::Service::Upstart
   action :enable
 end
+
+# Register database backups
+# Add to cron
+cron "postgres_backups" do
+  hour node['ow_python']['backup_hour']
+  minute node['ow_python']['backup_minute']
+  command virtualenv_path + "/bin/python " + node['ow_python']['app_root'] + "/reopenwatch/manage.py backup_postgres --execute"
+end
+
