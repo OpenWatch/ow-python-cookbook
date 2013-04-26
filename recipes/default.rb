@@ -96,8 +96,9 @@ end
 # Make local_settings.py 
 template node['ow_python']['app_root'] + "/reopenwatch/reopenwatch/local_settings.py" do
     source "local_settings.py.erb"
-    owner node['ow_python']['service_user']   
+    owner node['ow_python']['git_user']   
     group node['ow_python']['service_user_group']   
+    mode "770"
     variables({
       :db_name => node['ow_python']['db_name'],
       :db_user => node['ow_python']['db_user'],
