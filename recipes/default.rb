@@ -85,8 +85,6 @@ template node['ow_python']['app_root'] + "/.git/config" do
     action :create
 end
 
-
-
 # Pip install -r requirements.txt
 execute "pip install requirements.txt" do
     user "root"
@@ -154,6 +152,7 @@ template node['nginx']['dir'] + "/sites-enabled/ow_python.nginx" do
     variables({
     :http_listen_port => node['ow_python']['http_listen_port'],
     :https_listen_port => node['ow_python']['https_listen_port'],
+    :client_max_body_size => node['ow_python']['client_max_body_size'],
     :domain => node['ow_python']['domain'],
     :internal_port => node['ow_python']['internal_port'],
     :ssl_cert => node['ow_python']['ssl_dir'] + node['ow_python']['ssl_cert'],

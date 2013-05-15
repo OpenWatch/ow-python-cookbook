@@ -60,6 +60,7 @@ default['ow_python']['db_backup_min']	    = 19
 # Nginx
 default['ow_python']['http_listen_port']    = 80
 default['ow_python']['https_listen_port']   = 443
+default['ow_python']['client_max_body_size']= "500M"
 default['ow_python']['ssl_dir']				= "/srv/ssl/"
 default['ow_python']['ssl_cert']     		= "star_openwatch_net.crt"
 default['ow_python']['ssl_key']     		= "star_openwatch_net.key"

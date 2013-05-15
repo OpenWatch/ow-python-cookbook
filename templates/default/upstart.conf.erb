@@ -10,5 +10,5 @@ respawn
 script
   . <%= @virtualenv_path %>/bin/activate
   cd <%= @app_root %>/<%= @app_name %>
-  exec gunicorn <%= @app_name %>.wsgi:application -w 8 -u <%= @service_user %> --log-level=debug --access-logfile=<%= @access_log_path %> --error-logfile=<%= @error_log_path %>
+  exec gunicorn <%= @app_name %>.wsgi:application -w 4 -u <%= @service_user %> --log-level=debug --access-logfile=<%= @access_log_path %> --error-logfile=<%= @error_log_path %>
 end script

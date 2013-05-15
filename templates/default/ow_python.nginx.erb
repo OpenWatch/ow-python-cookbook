@@ -2,6 +2,7 @@
 
 server {
     listen      <%= @http_listen_port %>;
+    client_max_body_size <%= @client_max_body_size %>;
     server_name <%= @domain %> www.<%= @domain %>;
     location /uploadnocaptcha {
         proxy_pass_header Server;
@@ -21,6 +22,7 @@ server {
 
 server {
     listen <%= @https_listen_port %>;
+    client_max_body_size <%= @client_max_body_size %>;
     server_name <%= @domain %>;
     add_header Strict-Transport-Security "max-age=315360000; includeSubdomains";
     ssl on;
